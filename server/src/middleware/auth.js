@@ -1,0 +1,4 @@
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+export async function auth(req,res,next){try{const h=req.headers.authorization||'';const token=h.startsWith('Bearer ')?h.slice(7):req.cookies?.token;if(!token)return res.status(401).json({error:{code:'UNAUTHORIZED',message:'Please sign in to continue.'}});const decoded=jwt.verify(token,process.env.JWT_SECRET);const user=await User.findById(decoded.sub);if(!user)return res.status(401).json({error:{code:'UNAUTHORIZED',message:'Account not found.'}});req.user=user;next();}catch{return res.status(401).json({error:{code:'UNAUTHORIZED',message:'Session expired. Please sign in again.'}})}}
+export function adminOnly(req,res,next){if(req.user?.role!=='admin')return res.status(403).json({error:{code:'FORBIDDEN',message:'Administrator access required.'}});next()}
